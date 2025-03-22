@@ -1,1 +1,1 @@
-# go-dag
+# Go Directed acyclic graph (DAG)

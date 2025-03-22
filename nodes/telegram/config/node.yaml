@@ -1,0 +1,53 @@
+name: "Telegram"
+version: "1.0.0"
+description: "Sends messages and files to Telegram chats"
+
+settings:
+  - name: "botToken"
+    type: "string"
+    required: true
+    description: "Telegram Bot API token"
+  - name: "chatID"
+    type: "string"
+    required: true
+    description: "Default chat ID to send messages to"
+  - name: "enabled"
+    type: "boolean"
+    default: true
+    description: "Enable/disable the node"
+  - name: "parse_mode"
+    type: "string"
+    default: "HTML"
+    enum: ["HTML", "Markdown", "MarkdownV2"]
+    description: "Message parse mode"
+
+inputs:
+  - name: "message"
+    type: "string"
+    required: true
+    description: "Message text to send"
+  - name: "chat_id"
+    type: "string"
+    required: false
+    description: "Optional chat ID override"
+  - name: "file"
+    type: "string"
+    required: false
+    description: "Optional file to send (path or base64)"
+
+outputs:
+  - name: "message_id"
+    type: "integer"
+    description: "Telegram message ID"
+  - name: "status"
+    type: "string"
+    description: "Message delivery status"
+
+execution:
+  timeout: 10
+  retry:
+    attempts: 3
+    delay: 1
+  rate_limit:
+    messages_per_second: 30
+    messages_per_minute: 120 
