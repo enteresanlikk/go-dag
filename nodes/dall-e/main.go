@@ -24,18 +24,15 @@ func NewDallENode(apiKey string) *DallENode {
 	}
 }
 
-func (n *DallENode) Execute(input interface{}) interface{} {
-	return n.ExecuteWithCheck(input, func(input interface{}) interface{} {
+func (n *DallENode) Execute(inputs ...interface{}) []nodesCommon.NodeOutput {
+	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) interface{} {
 		time.Sleep(10 * time.Second)
 
-		prompt := input.(string)
+		prompt := inputs[0].(string)
 		image := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("Generated Image for: %s", prompt)))
 
 		fmt.Println("DALL·E Output (Base64):", image[:30]+"...")
 
-		if n.Next != nil {
-			return n.Next.Execute(image)
-		}
 		return image
 	})
 }

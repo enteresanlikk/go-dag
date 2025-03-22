@@ -7,6 +7,7 @@ import (
 	nodesGoogleDrive "github.com/enteresanlikk/go-dag/nodes/google/drive"
 	nodesOpenAI "github.com/enteresanlikk/go-dag/nodes/openai"
 	nodesSlack "github.com/enteresanlikk/go-dag/nodes/slack"
+	nodesTelegram "github.com/enteresanlikk/go-dag/nodes/telegram"
 )
 
 func main() {
@@ -18,9 +19,12 @@ func main() {
 
 	slack := nodesSlack.NewSlackNode("SLACK_WEBHOOK_URL")
 
+	telegram := nodesTelegram.NewTelegramNode("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
+
 	openAI.SetNext(dalle)
 	dalle.SetNext(googleDrive)
 	googleDrive.SetNext(slack)
+	googleDrive.SetNext(telegram)
 
 	inputPrompt := "Create a futuristic city illustration"
 	fmt.Println("🚀 Starting DAG Workflow...")

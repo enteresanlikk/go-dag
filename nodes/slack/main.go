@@ -23,16 +23,13 @@ func NewSlackNode(webhook string) *SlackNode {
 	}
 }
 
-func (n *SlackNode) Execute(input interface{}) interface{} {
-	return n.ExecuteWithCheck(input, func(input interface{}) interface{} {
+func (n *SlackNode) Execute(inputs ...interface{}) []nodesCommon.NodeOutput {
+	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) interface{} {
 		time.Sleep(3 * time.Second)
 
-		message := fmt.Sprintf("New AI-generated image saved at: %s", input.(string))
+		message := fmt.Sprintf("New AI-generated image saved at: %s", inputs[0].(string))
 		fmt.Printf("Sending Slack Notification to %s: %s\n", n.Webhook, message)
 
-		if n.Next != nil {
-			return n.Next.Execute(input)
-		}
-		return input
+		return message
 	})
 }

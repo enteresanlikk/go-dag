@@ -23,17 +23,14 @@ func NewGoogleDriveNode(folder string) *GoogleDriveNode {
 	}
 }
 
-func (n *GoogleDriveNode) Execute(input interface{}) interface{} {
-	return n.ExecuteWithCheck(input, func(input interface{}) interface{} {
+func (n *GoogleDriveNode) Execute(inputs ...interface{}) []nodesCommon.NodeOutput {
+	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) interface{} {
 		time.Sleep(2 * time.Second)
 
-		imageData := input.(string)
+		imageData := inputs[0].(string)
 		savedPath := fmt.Sprintf("%s/image_%s.png", n.Folder, imageData[:10])
 		fmt.Println("Image saved to Google Drive:", savedPath)
 
-		if n.Next != nil {
-			return n.Next.Execute(savedPath)
-		}
 		return savedPath
 	})
 }

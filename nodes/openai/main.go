@@ -23,17 +23,14 @@ func NewOpenAINode(apiKey string) *OpenAINode {
 	}
 }
 
-func (n *OpenAINode) Execute(input interface{}) interface{} {
-	return n.ExecuteWithCheck(input, func(input interface{}) interface{} {
+func (n *OpenAINode) Execute(inputs ...interface{}) []nodesCommon.NodeOutput {
+	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) interface{} {
 		time.Sleep(5 * time.Second)
 
-		prompt := input.(string)
+		prompt := inputs[0].(string)
 		response := fmt.Sprintf("OpenAI Response for: %s", prompt)
 		fmt.Println("OpenAI Output:", response)
 
-		if n.Next != nil {
-			return n.Next.Execute(response)
-		}
 		return response
 	})
 }
