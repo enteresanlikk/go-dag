@@ -1,36 +1,54 @@
 package nodesGoogleDrive
 
 import (
-	"fmt"
 	"time"
 
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 )
 
+// type
 type GoogleDriveNode struct {
 	nodesCommon.BaseNode
 
-	Folder string
+	Settings map[string]interface{}
 }
 
-func NewGoogleDriveNode(folder string) *GoogleDriveNode {
+// base node settings
+var baseNode = nodesCommon.BaseNode{
+	ID:   "google-drive",
+	Name: "Google Drive",
+}
+
+// create
+func NewGoogleDriveNode(settings map[string]interface{}) *GoogleDriveNode {
 	return &GoogleDriveNode{
-		BaseNode: nodesCommon.BaseNode{
-			Enabled: true,
-			Name:    "Google Drive",
-		},
-		Folder: folder,
+		BaseNode: baseNode,
+		Settings: settings,
 	}
 }
 
-func (n *GoogleDriveNode) Execute(inputs ...interface{}) []nodesCommon.NodeOutput {
-	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) interface{} {
+// execute
+func (n *GoogleDriveNode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
+	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
 		time.Sleep(2 * time.Second)
 
 		imageData := inputs[0].(string)
-		savedPath := fmt.Sprintf("%s/image_%s.png", n.Folder, imageData[:10])
-		fmt.Println("Image saved to Google Drive:", savedPath)
+		folder := n.Settings["folder"].(string)
 
-		return savedPath
+		//business logic
+		savedPath := folder + "/image_" + imageData + ".png"
+
+		return []interface{}{savedPath}
 	})
+}
+
+// factory
+func CreateGoogleDriveNode(settings map[string]interface{}) (nodesCommon.Node, error) {
+	return NewGoogleDriveNode(settings), nil
+}
+
+// init
+func init() {
+	factory := nodesCommon.GetFactory()
+	factory.Register(baseNode.ID, CreateGoogleDriveNode)
 }

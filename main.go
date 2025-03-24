@@ -3,32 +3,126 @@ package main
 import (
 	"fmt"
 
-	nodesDallE "github.com/enteresanlikk/go-dag/nodes/dall-e"
-	nodesGoogleDrive "github.com/enteresanlikk/go-dag/nodes/google/drive"
-	nodesOpenAI "github.com/enteresanlikk/go-dag/nodes/openai"
-	nodesSlack "github.com/enteresanlikk/go-dag/nodes/slack"
-	nodesTelegram "github.com/enteresanlikk/go-dag/nodes/telegram"
+	"github.com/enteresanlikk/go-dag/nodes"
+	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
+	"github.com/goccy/go-json"
 )
 
+type Payload struct {
+	Nodes []Node `json:"nodes"`
+	Edges []Edge `json:"edges"`
+}
+
+type Node struct {
+	ID       string                 `json:"id"`
+	Data     []interface{}          `json:"data"`
+	Settings map[string]interface{} `json:"settings"`
+}
+
+type Edge struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+}
+
+func GetPayload() (Payload, error) {
+	payloadString := `{
+		"nodes": [
+			{
+				"id": "openai",
+				"data": [
+					"Create a futuristic city illustration"
+				],
+				"settings": {
+					"apiKey": "OPENAI_API_KEY"
+				}
+			},
+			{
+				"id": "dall-e",
+				"settings": {
+					"apiKey": "DALL_E_API_KEY"
+				}
+			},
+			{
+				"id": "google-drive",
+				"settings": {
+					"folder": "GOOGLE_DRIVE_FOLDER",
+					"apiKey": "GOOGLE_DRIVE_API_KEY"
+				}
+			},
+			{
+				"id": "slack",
+				"settings": {
+					"webhook": "SLACK_WEBHOOK"
+				}
+			},
+			{
+				"id": "telegram",
+				"settings": {
+					"botToken": "TELEGRAM_BOT_TOKEN",
+					"chatId": "TELEGRAM_CHAT_ID"
+				}
+			}
+		],
+		"edges": [
+			{
+				"source": "openai",
+				"target": "dall-e"
+			},
+			{
+				"source": "dall-e",
+				"target": "google-drive"
+			},
+			{
+				"source": "google-drive",
+				"target": "slack"
+			},
+			{
+				"source": "google-drive",
+				"target": "telegram"
+			}
+		]
+	}`
+
+	var payload Payload
+	err := json.Unmarshal([]byte(payloadString), &payload)
+	if err != nil {
+		return Payload{}, err
+	}
+
+	return payload, nil
+}
+
 func main() {
-	openAI := nodesOpenAI.NewOpenAINode("OPEN_AI_API_KEY")
+	// get payload
+	payload, err := GetPayload()
+	if err != nil {
+		fmt.Println("Error getting payload:", err)
+		return
+	}
 
-	dalle := nodesDallE.NewDallENode("DALL_E_API_KEY")
+	// get factory
+	factory := nodes.GetNodeFactory()
 
-	googleDrive := nodesGoogleDrive.NewGoogleDriveNode("Google Drive Folder")
+	// create nodes
+	nodes := make(map[string]nodesCommon.Node)
+	for _, payloadNode := range payload.Nodes {
+		node, err := factory.Create(payloadNode.ID, payloadNode.Settings)
+		if err != nil {
+			fmt.Println("Error creating node:", err)
+			return
+		}
+		nodes[payloadNode.ID] = node
+	}
 
-	slack := nodesSlack.NewSlackNode("SLACK_WEBHOOK_URL")
+	// set edges
+	for _, edge := range payload.Edges {
+		if nodes[edge.Source] == nil || nodes[edge.Target] == nil {
+			fmt.Println("Node not found:", edge.Source, edge.Target)
+			return
+		}
+		nodes[edge.Source].SetNext(nodes[edge.Target])
+	}
 
-	telegram := nodesTelegram.NewTelegramNode("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
-
-	openAI.SetNext(dalle)
-	dalle.SetNext(googleDrive)
-	googleDrive.SetNext(slack)
-	googleDrive.SetNext(telegram)
-
-	inputPrompt := "Create a futuristic city illustration"
-	fmt.Println("🚀 Starting DAG Workflow...")
-	finalOutput := openAI.Execute(inputPrompt)
-
-	fmt.Println("\n✅ Workflow Completed! Final Output:", finalOutput)
+	// execute workflow
+	nodes[payload.Nodes[0].ID].Execute(payload.Nodes[0].Data)
 }

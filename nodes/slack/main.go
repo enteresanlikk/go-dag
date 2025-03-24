@@ -1,35 +1,53 @@
 package nodesSlack
 
 import (
-	"fmt"
 	"time"
 
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 )
 
+// type
 type SlackNode struct {
 	nodesCommon.BaseNode
 
-	Webhook string
+	Settings map[string]interface{}
 }
 
-func NewSlackNode(webhook string) *SlackNode {
+// base node settings
+var baseNode = nodesCommon.BaseNode{
+	ID:   "slack",
+	Name: "Slack",
+}
+
+// create
+func NewSlackNode(settings map[string]interface{}) *SlackNode {
 	return &SlackNode{
-		BaseNode: nodesCommon.BaseNode{
-			Enabled: true,
-			Name:    "Slack",
-		},
-		Webhook: webhook,
+		BaseNode: baseNode,
+		Settings: settings,
 	}
 }
 
-func (n *SlackNode) Execute(inputs ...interface{}) []nodesCommon.NodeOutput {
-	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) interface{} {
+// execute
+func (n *SlackNode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
+	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
 		time.Sleep(3 * time.Second)
 
-		message := fmt.Sprintf("New AI-generated image saved at: %s", inputs[0].(string))
-		fmt.Printf("Sending Slack Notification to %s: %s\n", n.Webhook, message)
+		image := inputs[0].(string)
 
-		return message
+		//business logic
+		message := "New AI-generated image saved at: " + image
+
+		return []interface{}{message}
 	})
+}
+
+// factory
+func CreateSlackNode(settings map[string]interface{}) (nodesCommon.Node, error) {
+	return NewSlackNode(settings), nil
+}
+
+// init
+func init() {
+	factory := nodesCommon.GetFactory()
+	factory.Register(baseNode.ID, CreateSlackNode)
 }
