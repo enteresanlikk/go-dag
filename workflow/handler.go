@@ -1,8 +1,6 @@
 package workflow
 
 import (
-	"fmt"
-
 	"github.com/enteresanlikk/go-dag/nodes"
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 	"github.com/gofiber/fiber/v2"
@@ -25,7 +23,6 @@ func ExecuteWorkflowHandler(c *fiber.Ctx) error {
 	for _, payloadNode := range payload.Nodes {
 		node, err := factory.Create(payloadNode.ID, payloadNode.Settings)
 		if err != nil {
-			fmt.Println("Error creating node:", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Error creating node",
 			})
@@ -36,16 +33,24 @@ func ExecuteWorkflowHandler(c *fiber.Ctx) error {
 	// set edges
 	for _, edge := range payload.Edges {
 		if nodes[edge.Source] == nil || nodes[edge.Target] == nil {
-			fmt.Println("Node not found:", edge.Source, edge.Target)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Node not found",
 			})
 		}
-		nodes[edge.Source].SetNext(nodes[edge.Target])
+
+		sourceNode := nodes[edge.Source]
+		targetNode := nodes[edge.Target]
+
+		sourceNode.SetChild(targetNode)
+		targetNode.SetParent(sourceNode)
 	}
 
+	// get start node
+	rootPayloadNode := payload.Nodes[0]
+	rootNode := nodes[rootPayloadNode.ID]
+
 	// execute workflow
-	result := nodes[payload.Nodes[0].ID].Execute(payload.Nodes[0].Data)
+	result := rootNode.Execute(rootPayloadNode.Data)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Workflow executed successfully",

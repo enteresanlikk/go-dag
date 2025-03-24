@@ -17,6 +17,14 @@ func main() {
 	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
 
+	if host == "" {
+		host = "localhost"
+	}
+
+	if port == "" {
+		port = "3000"
+	}
+
 	app := fiber.New(fiber.Config{
 		JSONEncoder:  json.Marshal,
 		JSONDecoder:  json.Unmarshal,

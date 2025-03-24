@@ -14,27 +14,33 @@ type NodeOutput struct {
 
 type Node interface {
 	Execute(inputs []interface{}) []NodeOutput
-	SetNext(node Node)
-	GetName() string
-	GetNext() []Node
+	SetChild(node Node)
+	GetChildren() []Node
+	SetParent(node Node)
+	GetParents() []Node
 }
 
 type BaseNode struct {
-	ID   string
-	Name string
-	Next []Node
+	ID       string
+	Name     string
+	Children []Node
+	Parents  []Node
 }
 
-func (n *BaseNode) SetNext(node Node) {
-	n.Next = append(n.Next, node)
+func (n *BaseNode) SetChild(node Node) {
+	n.Children = append(n.Children, node)
 }
 
-func (n *BaseNode) GetName() string {
-	return n.Name
+func (n *BaseNode) GetChildren() []Node {
+	return n.Children
 }
 
-func (n *BaseNode) GetNext() []Node {
-	return n.Next
+func (n *BaseNode) SetParent(node Node) {
+	n.Parents = append(n.Parents, node)
+}
+
+func (n *BaseNode) GetParents() []Node {
+	return n.Parents
 }
 
 func (n *BaseNode) ExecuteWithCheck(inputs []interface{}, execute func([]interface{}) []interface{}) []NodeOutput {
@@ -50,10 +56,10 @@ func (n *BaseNode) ExecuteWithCheck(inputs []interface{}, execute func([]interfa
 		ExecutionTime: elapsed,
 	}}
 
-	if len(n.Next) > 0 {
-		for _, nextNode := range n.Next {
-			nextOutputs := nextNode.Execute(result)
-			outputs = append(outputs, nextOutputs...)
+	if len(n.Children) > 0 {
+		for _, childNode := range n.Children {
+			childOutputs := childNode.Execute(result)
+			outputs = append(outputs, childOutputs...)
 		}
 	}
 
