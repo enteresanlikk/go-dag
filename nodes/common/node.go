@@ -7,7 +7,8 @@ import (
 type NodeOutput struct {
 	ID            string        `json:"id"`
 	Name          string        `json:"name"`
-	Result        []interface{} `json:"result"`
+	Inputs        []interface{} `json:"inputs"`
+	Outputs       []interface{} `json:"outputs"`
 	ExecutionTime time.Duration `json:"executionTime"`
 }
 
@@ -44,7 +45,8 @@ func (n *BaseNode) ExecuteWithCheck(inputs []interface{}, execute func([]interfa
 	outputs := []NodeOutput{{
 		ID:            n.ID,
 		Name:          n.Name,
-		Result:        result,
+		Inputs:        inputs,
+		Outputs:       result,
 		ExecutionTime: elapsed,
 	}}
 
