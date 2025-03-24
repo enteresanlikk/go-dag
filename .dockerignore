@@ -1,0 +1,12 @@
+.git
+.vscode
+.idea
+.DS_Store
+.*ignore
+docker-compose*.yml
+Dockerfile*
+**/*_test.go
+Makefile
+*.md
+LICENSE
+*.log

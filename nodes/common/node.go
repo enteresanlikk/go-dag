@@ -1,13 +1,14 @@
 package nodesCommon
 
 import (
-	"fmt"
 	"time"
 )
 
 type NodeOutput struct {
-	NodeName string
-	Data     []interface{}
+	ID            string        `json:"id"`
+	Name          string        `json:"name"`
+	Result        []interface{} `json:"result"`
+	ExecutionTime time.Duration `json:"executionTime"`
 }
 
 type Node interface {
@@ -36,19 +37,16 @@ func (n *BaseNode) GetNext() []Node {
 }
 
 func (n *BaseNode) ExecuteWithCheck(inputs []interface{}, execute func([]interface{}) []interface{}) []NodeOutput {
-	name := n.GetName()
-
-	fmt.Printf("Executing node: %s\n", name)
-
 	now := time.Now()
 	result := execute(inputs)
 	elapsed := time.Since(now)
 
-	fmt.Printf("Executed node: %s\n", name)
-	fmt.Printf("Execution time: %s\n", elapsed)
-	fmt.Println("--------------------------------")
-
-	outputs := []NodeOutput{{NodeName: name, Data: result}}
+	outputs := []NodeOutput{{
+		ID:            n.ID,
+		Name:          n.Name,
+		Result:        result,
+		ExecutionTime: elapsed,
+	}}
 
 	if len(n.Next) > 0 {
 		for _, nextNode := range n.Next {

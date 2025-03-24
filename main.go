@@ -1,11 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/enteresanlikk/go-dag/nodes"
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 	"github.com/goccy/go-json"
+	"github.com/gofiber/fiber/v2"
 )
 
 type Payload struct {
@@ -24,80 +31,14 @@ type Edge struct {
 	Target string `json:"target"`
 }
 
-func GetPayload() (Payload, error) {
-	payloadString := `{
-		"nodes": [
-			{
-				"id": "openai",
-				"data": [
-					"Create a futuristic city illustration"
-				],
-				"settings": {
-					"apiKey": "OPENAI_API_KEY"
-				}
-			},
-			{
-				"id": "dall-e",
-				"settings": {
-					"apiKey": "DALL_E_API_KEY"
-				}
-			},
-			{
-				"id": "google-drive",
-				"settings": {
-					"folder": "GOOGLE_DRIVE_FOLDER",
-					"apiKey": "GOOGLE_DRIVE_API_KEY"
-				}
-			},
-			{
-				"id": "slack",
-				"settings": {
-					"webhook": "SLACK_WEBHOOK"
-				}
-			},
-			{
-				"id": "telegram",
-				"settings": {
-					"botToken": "TELEGRAM_BOT_TOKEN",
-					"chatId": "TELEGRAM_CHAT_ID"
-				}
-			}
-		],
-		"edges": [
-			{
-				"source": "openai",
-				"target": "dall-e"
-			},
-			{
-				"source": "dall-e",
-				"target": "google-drive"
-			},
-			{
-				"source": "google-drive",
-				"target": "slack"
-			},
-			{
-				"source": "google-drive",
-				"target": "telegram"
-			}
-		]
-	}`
-
+// handler
+func executeWorkflowHandler(c *fiber.Ctx) error {
+	// get payload from request
 	var payload Payload
-	err := json.Unmarshal([]byte(payloadString), &payload)
-	if err != nil {
-		return Payload{}, err
-	}
-
-	return payload, nil
-}
-
-func main() {
-	// get payload
-	payload, err := GetPayload()
-	if err != nil {
-		fmt.Println("Error getting payload:", err)
-		return
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid payload",
+		})
 	}
 
 	// get factory
@@ -109,7 +50,9 @@ func main() {
 		node, err := factory.Create(payloadNode.ID, payloadNode.Settings)
 		if err != nil {
 			fmt.Println("Error creating node:", err)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error creating node",
+			})
 		}
 		nodes[payloadNode.ID] = node
 	}
@@ -118,11 +61,52 @@ func main() {
 	for _, edge := range payload.Edges {
 		if nodes[edge.Source] == nil || nodes[edge.Target] == nil {
 			fmt.Println("Node not found:", edge.Source, edge.Target)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Node not found",
+			})
 		}
 		nodes[edge.Source].SetNext(nodes[edge.Target])
 	}
 
 	// execute workflow
-	nodes[payload.Nodes[0].ID].Execute(payload.Nodes[0].Data)
+	result := nodes[payload.Nodes[0].ID].Execute(payload.Nodes[0].Data)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Workflow executed successfully",
+		"result":  result,
+	})
+}
+
+func main() {
+	host := os.Getenv("HOST")
+	port := os.Getenv("PORT")
+
+	app := fiber.New(fiber.Config{
+		JSONEncoder:  json.Marshal,
+		JSONDecoder:  json.Unmarshal,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	})
+
+	app.Post("/workflow", executeWorkflowHandler)
+
+	go func() {
+		log.Printf("Server starting on http://%s:%s", host, port)
+		if err := app.Listen(host + ":" + port); err != nil {
+			log.Fatalf("HTTP server error: %v", err)
+		}
+		log.Println("Stopped serving new connections.")
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+
+	_, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownRelease()
+
+	if err := app.Shutdown(); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
+	log.Println("Graceful shutdown complete.")
 }
