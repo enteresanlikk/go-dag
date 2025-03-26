@@ -10,7 +10,6 @@ import (
 )
 
 func ExecuteWorkflowHandler(c *fiber.Ctx) error {
-	// get payload from request
 	var payload *graph.GraphConfig
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
