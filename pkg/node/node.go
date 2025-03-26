@@ -48,7 +48,7 @@ func (nm *NodeManager) CreateNode(id, name string, process func(inputs map[strin
 		Children: make([]Edge, 0),
 	}
 
-	baseNode := NewBaseNode(id, name, opts...)
+	baseNode := NewBaseNode(id, name)
 	for k, v := range baseNode.Settings {
 		node.Settings[k] = v
 	}

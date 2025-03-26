@@ -1,11 +1,13 @@
 package node
 
 type NodeProcessor interface {
-	ID() string
-	Name() string
+	GetID() string
+	GetName() string
 	Process(inputs map[string]interface{}) map[string]interface{}
 	GetSetting(key string, defaultValue interface{}) interface{}
 	SetSetting(key string, value interface{})
+	GetSettings() map[string]interface{}
+	SetSettings(settings map[string]interface{})
 }
 
 var (
@@ -13,7 +15,7 @@ var (
 )
 
 func RegisterProcessor(processor NodeProcessor) {
-	nodeRegistry[processor.ID()] = processor
+	nodeRegistry[processor.GetID()] = processor
 }
 
 func GetProcessor(id string) (NodeProcessor, bool) {
@@ -23,6 +25,6 @@ func GetProcessor(id string) (NodeProcessor, bool) {
 
 func InitializeNodes(manager *NodeManager) {
 	for _, processor := range nodeRegistry {
-		manager.CreateNode(processor.ID(), processor.Name(), processor.Process)
+		manager.CreateNode(processor.GetID(), processor.GetName(), processor.Process)
 	}
 }

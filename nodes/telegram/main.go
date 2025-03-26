@@ -8,11 +8,9 @@ import (
 
 type TelegramNode struct {
 	node.BaseNode
-
-	Settings map[string]interface{}
 }
 
-func newTelegramNode() *TelegramNode {
+func NewTelegramNode() *TelegramNode {
 	return &TelegramNode{
 		BaseNode: node.NewBaseNode("telegram", "Telegram"),
 	}
@@ -29,5 +27,5 @@ func (n *TelegramNode) Process(inputs map[string]interface{}) map[string]interfa
 }
 
 func init() {
-	node.RegisterProcessor(newTelegramNode())
+	node.RegisterProcessor(NewTelegramNode())
 }

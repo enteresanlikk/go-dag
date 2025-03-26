@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/goccy/go-json"
-
 	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
@@ -135,20 +133,6 @@ func (g *Graph) buildDependencyGraph(jsonData *GraphConfig) *dependencyGraph {
 		graph.edges[node.ID] = make([]string, 0)
 	}
 
-	// Add edges from input references
-	for _, node := range jsonData.Nodes {
-		for _, value := range node.Inputs {
-			if strValue, ok := value.(string); ok {
-				re := regexp.MustCompile(`\$id\[([^\]]+)\]\.outputs\[([^\]]+)\]`)
-				matches := re.FindStringSubmatch(strValue)
-				if len(matches) == 3 {
-					// Add dependency: node depends on matches[1]
-					graph.edges[matches[1]] = append(graph.edges[matches[1]], node.ID)
-				}
-			}
-		}
-	}
-
 	// Add edges from the edges configuration
 	for _, edge := range jsonData.Edges {
 		graph.edges[edge.Source] = append(graph.edges[edge.Source], edge.Target)
@@ -206,31 +190,17 @@ func (g *Graph) LoadFromJSON(jsonData *GraphConfig) error {
 			return fmt.Errorf("node processor not found for ID: %s", nodeConfig.ID)
 		}
 
-		for key, value := range nodeConfig.Settings {
-			if num, ok := value.(json.Number); ok {
-				if n, err := num.Int64(); err == nil {
-					processor.SetSetting(key, int(n))
-					continue
-				}
-			}
-			processor.SetSetting(key, value)
-		}
+		processor.SetSettings(nodeConfig.Settings)
 
 		node := &node.Node{
-			ID:       processor.ID(),
-			Name:     processor.Name(),
+			ID:       processor.GetID(),
+			Name:     processor.GetName(),
 			Process:  processor.Process,
 			Settings: make(map[string]interface{}),
 			Children: make([]node.Edge, 0),
 		}
 
 		for key, value := range nodeConfig.Settings {
-			if num, ok := value.(json.Number); ok {
-				if n, err := num.Int64(); err == nil {
-					node.Settings[key] = int(n)
-					continue
-				}
-			}
 			node.Settings[key] = value
 		}
 

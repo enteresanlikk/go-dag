@@ -8,11 +8,9 @@ import (
 
 type OpenAINode struct {
 	node.BaseNode
-
-	Settings map[string]interface{}
 }
 
-func newOpenAINode() *OpenAINode {
+func NewOpenAINode() *OpenAINode {
 	return &OpenAINode{
 		BaseNode: node.NewBaseNode("openai", "OpenAI"),
 	}
@@ -31,5 +29,5 @@ func (n *OpenAINode) Process(inputs map[string]interface{}) map[string]interface
 }
 
 func init() {
-	node.RegisterProcessor(newOpenAINode())
+	node.RegisterProcessor(NewOpenAINode())
 }

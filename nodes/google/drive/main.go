@@ -8,11 +8,9 @@ import (
 
 type GoogleDriveNode struct {
 	node.BaseNode
-
-	Settings map[string]interface{}
 }
 
-func newGoogleDriveNode() *GoogleDriveNode {
+func NewGoogleDriveNode() *GoogleDriveNode {
 	return &GoogleDriveNode{
 		BaseNode: node.NewBaseNode("google-drive", "Google Drive"),
 	}
@@ -31,5 +29,5 @@ func (n *GoogleDriveNode) Process(inputs map[string]interface{}) map[string]inte
 }
 
 func init() {
-	node.RegisterProcessor(newGoogleDriveNode())
+	node.RegisterProcessor(NewGoogleDriveNode())
 }

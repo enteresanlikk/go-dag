@@ -8,11 +8,9 @@ import (
 
 type ConditionNode struct {
 	node.BaseNode
-
-	Settings map[string]interface{}
 }
 
-func newConditionNode() *ConditionNode {
+func NewConditionNode() *ConditionNode {
 	return &ConditionNode{
 		BaseNode: node.NewBaseNode("condition", "Condition"),
 	}
@@ -75,5 +73,5 @@ func (n *ConditionNode) Process(inputs map[string]interface{}) map[string]interf
 }
 
 func init() {
-	node.RegisterProcessor(newConditionNode())
+	node.RegisterProcessor(NewConditionNode())
 }

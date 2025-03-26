@@ -1,31 +1,35 @@
 package node
 
 type BaseNode struct {
-	id       string
-	name     string
+	ID       string
+	Name     string
 	Settings map[string]interface{}
 }
 
-func NewBaseNode(id, name string, opts ...Option) BaseNode {
+func NewBaseNode(id, name string) BaseNode {
 	node := BaseNode{
-		id:       id,
-		name:     name,
+		ID:       id,
+		Name:     name,
 		Settings: make(map[string]interface{}),
-	}
-
-	for _, opt := range opts {
-		opt(&node)
 	}
 
 	return node
 }
 
-func (n *BaseNode) ID() string {
-	return n.id
+func (n *BaseNode) GetID() string {
+	return n.ID
 }
 
-func (n *BaseNode) Name() string {
-	return n.name
+func (n *BaseNode) GetName() string {
+	return n.Name
+}
+
+func (n *BaseNode) GetSettings() map[string]interface{} {
+	return n.Settings
+}
+
+func (n *BaseNode) SetSettings(settings map[string]interface{}) {
+	n.Settings = settings
 }
 
 func (n *BaseNode) SetSetting(key string, value interface{}) {

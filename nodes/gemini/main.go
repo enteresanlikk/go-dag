@@ -8,11 +8,9 @@ import (
 
 type GeminiNode struct {
 	node.BaseNode
-
-	Settings map[string]interface{}
 }
 
-func newGeminiNode() *GeminiNode {
+func NewGeminiNode() *GeminiNode {
 	return &GeminiNode{
 		BaseNode: node.NewBaseNode("gemini", "Gemini"),
 	}
@@ -29,5 +27,5 @@ func (n *GeminiNode) Process(inputs map[string]interface{}) map[string]interface
 }
 
 func init() {
-	node.RegisterProcessor(newGeminiNode())
+	node.RegisterProcessor(NewGeminiNode())
 }

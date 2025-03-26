@@ -9,11 +9,9 @@ import (
 
 type DallENode struct {
 	node.BaseNode
-
-	Settings interface{}
 }
 
-func newDallENode() *DallENode {
+func NewDallENode() *DallENode {
 	return &DallENode{
 		BaseNode: node.NewBaseNode("dall-e", "DALL·E"),
 	}
@@ -32,5 +30,5 @@ func (n *DallENode) Process(inputs map[string]interface{}) map[string]interface{
 }
 
 func init() {
-	node.RegisterProcessor(newDallENode())
+	node.RegisterProcessor(NewDallENode())
 }

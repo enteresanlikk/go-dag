@@ -8,11 +8,9 @@ import (
 
 type MergeNode struct {
 	node.BaseNode
-
-	Settings map[string]interface{}
 }
 
-func newMergeNode() *MergeNode {
+func NewMergeNode() *MergeNode {
 	return &MergeNode{
 		BaseNode: node.NewBaseNode("merge", "Merge"),
 	}
@@ -29,5 +27,5 @@ func (n *MergeNode) Process(inputs map[string]interface{}) map[string]interface{
 }
 
 func init() {
-	node.RegisterProcessor(newMergeNode())
+	node.RegisterProcessor(NewMergeNode())
 }

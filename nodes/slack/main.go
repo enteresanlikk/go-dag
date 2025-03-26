@@ -8,11 +8,9 @@ import (
 
 type SlackNode struct {
 	node.BaseNode
-
-	Settings map[string]interface{}
 }
 
-func newSlackNode() *SlackNode {
+func NewSlackNode() *SlackNode {
 	return &SlackNode{
 		BaseNode: node.NewBaseNode("slack", "Slack"),
 	}
@@ -29,5 +27,5 @@ func (n *SlackNode) Process(inputs map[string]interface{}) map[string]interface{
 }
 
 func init() {
-	node.RegisterProcessor(newSlackNode())
+	node.RegisterProcessor(NewSlackNode())
 }
