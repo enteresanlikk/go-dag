@@ -19,7 +19,7 @@ docker compose down
     "nodes": [
         {
             "id": "openai",
-            "data": [
+            "inputs": [
                 "Create a futuristic city illustration"
             ],
             "settings": {
@@ -51,6 +51,9 @@ docker compose down
                 "botToken": "TELEGRAM_BOT_TOKEN",
                 "chatId": "TELEGRAM_CHAT_ID"
             }
+        },
+        {
+            "id": "merge"
         }
     ],
     "edges": [
@@ -69,6 +72,14 @@ docker compose down
         {
             "source": "google-drive",
             "target": "telegram"
+        },
+        {
+            "source": "slack",
+            "target": "merge"
+        },
+        {
+            "source": "telegram",
+            "target": "merge"
         }
     ]
 }

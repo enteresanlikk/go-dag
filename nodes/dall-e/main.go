@@ -4,51 +4,36 @@ import (
 	"encoding/base64"
 	"time"
 
-	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
+	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
 // type
 type DallENode struct {
-	nodesCommon.BaseNode
+	node.BaseNode
 
 	Settings interface{}
 }
 
-// base node settings
-var baseNode = nodesCommon.BaseNode{
-	ID:   "dall-e",
-	Name: "DALL·E",
-}
-
-// create
-func NewDallENode(settings map[string]interface{}) *DallENode {
+func newDallENode() *DallENode {
 	return &DallENode{
-		BaseNode: baseNode,
-		Settings: settings,
+		BaseNode: node.NewBaseNode("dall-e", "DALL·E"),
 	}
 }
 
 // execute
-func (n *DallENode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
-	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		time.Sleep(10 * time.Second)
+func (n *DallENode) Process(inputs []interface{}) []interface{} {
+	time.Sleep(10 * time.Second)
 
-		prompt := inputs[0].(string)
+	// OpenAI'dan gelen array'in ilk elemanını al
+	prompt := inputs[0].(string)
 
-		//business logic
-		image := base64.StdEncoding.EncodeToString([]byte("Generated Image for: " + prompt))
+	//business logic
+	image := base64.StdEncoding.EncodeToString([]byte("Generated Image for: " + prompt))
 
-		return []interface{}{image}
-	})
-}
-
-// factory
-func CreateDallENode(settings map[string]interface{}) (nodesCommon.Node, error) {
-	return NewDallENode(settings), nil
+	return []interface{}{image}
 }
 
 // init
 func init() {
-	factory := nodesCommon.GetFactory()
-	factory.Register(baseNode.ID, CreateDallENode)
+	node.RegisterProcessor(newDallENode())
 }

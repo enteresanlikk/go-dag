@@ -3,51 +3,37 @@ package nodesTelegram
 import (
 	"time"
 
-	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
+	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
 // type
 type TelegramNode struct {
-	nodesCommon.BaseNode
+	node.BaseNode
 
 	Settings map[string]interface{}
 }
 
-// base node settings
-var baseNode = nodesCommon.BaseNode{
-	ID:   "telegram",
-	Name: "Telegram",
-}
-
 // create
-func NewTelegramNode(settings map[string]interface{}) *TelegramNode {
+func newTelegramNode() *TelegramNode {
 	return &TelegramNode{
-		BaseNode: baseNode,
-		Settings: settings,
+		BaseNode: node.NewBaseNode("telegram", "Telegram"),
 	}
 }
 
 // execute
-func (n *TelegramNode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
-	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		time.Sleep(1 * time.Second)
+func (n *TelegramNode) Process(inputs []interface{}) []interface{} {
+	time.Sleep(1 * time.Second)
 
-		image := inputs[0].(string)
+	// Google Drive'dan gelen array'in ilk elemanını al
+	message := inputs[0].(string)
 
-		//business logic
-		message := "New AI-generated image saved at: " + image
+	// business logic
+	result := "Sent to Telegram: " + message
 
-		return []interface{}{message}
-	})
-}
-
-// factory
-func CreateTelegramNode(settings map[string]interface{}) (nodesCommon.Node, error) {
-	return NewTelegramNode(settings), nil
+	return []interface{}{result}
 }
 
 // init
 func init() {
-	factory := nodesCommon.GetFactory()
-	factory.Register(baseNode.ID, CreateTelegramNode)
+	node.RegisterProcessor(newTelegramNode())
 }

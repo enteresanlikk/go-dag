@@ -3,51 +3,36 @@ package nodesSlack
 import (
 	"time"
 
-	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
+	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
 // type
 type SlackNode struct {
-	nodesCommon.BaseNode
+	node.BaseNode
 
 	Settings map[string]interface{}
 }
 
-// base node settings
-var baseNode = nodesCommon.BaseNode{
-	ID:   "slack",
-	Name: "Slack",
-}
-
 // create
-func NewSlackNode(settings map[string]interface{}) *SlackNode {
+func newSlackNode() *SlackNode {
 	return &SlackNode{
-		BaseNode: baseNode,
-		Settings: settings,
+		BaseNode: node.NewBaseNode("slack", "Slack"),
 	}
 }
 
 // execute
-func (n *SlackNode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
-	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		time.Sleep(3 * time.Second)
+func (n *SlackNode) Process(inputs []interface{}) []interface{} {
+	time.Sleep(3 * time.Second)
 
-		image := inputs[0].(string)
+	image := inputs[0].(string)
 
-		//business logic
-		message := "New AI-generated image saved at: " + image
+	//business logic
+	message := "New AI-generated image saved at: " + image
 
-		return []interface{}{message}
-	})
-}
-
-// factory
-func CreateSlackNode(settings map[string]interface{}) (nodesCommon.Node, error) {
-	return NewSlackNode(settings), nil
+	return []interface{}{message}
 }
 
 // init
 func init() {
-	factory := nodesCommon.GetFactory()
-	factory.Register(baseNode.ID, CreateSlackNode)
+	node.RegisterProcessor(newSlackNode())
 }
