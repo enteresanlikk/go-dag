@@ -1,6 +1,8 @@
 package nodesGemini
 
 import (
+	"fmt"
+
 	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
@@ -16,10 +18,14 @@ func newGeminiNode() *GeminiNode {
 	}
 }
 
-func (n *GeminiNode) Process(inputs []interface{}) []interface{} {
-	prompt := inputs[0].(string)
+func (n *GeminiNode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("GeminiNode Process", inputs)
 
-	return []interface{}{prompt}
+	prompt := inputs["prompt"].(string)
+
+	return map[string]interface{}{
+		"prompt": prompt,
+	}
 }
 
 func init() {

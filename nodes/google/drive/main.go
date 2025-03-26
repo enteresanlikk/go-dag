@@ -1,6 +1,8 @@
 package nodesGoogleDrive
 
 import (
+	"fmt"
+
 	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
@@ -16,12 +18,16 @@ func newGoogleDriveNode() *GoogleDriveNode {
 	}
 }
 
-func (n *GoogleDriveNode) Process(inputs []interface{}) []interface{} {
-	content := inputs[0].(string)
+func (n *GoogleDriveNode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("GoogleDriveNode Process", inputs)
 
-	result := "Uploaded to Google Drive: " + content
+	file := inputs["file"].(string)
 
-	return []interface{}{result}
+	result := "Uploaded to Google Drive: " + file
+
+	return map[string]interface{}{
+		"result": result,
+	}
 }
 
 func init() {

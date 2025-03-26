@@ -1,6 +1,8 @@
 package nodesCondition
 
 import (
+	"fmt"
+
 	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
@@ -16,15 +18,20 @@ func newConditionNode() *ConditionNode {
 	}
 }
 
-func (n *ConditionNode) Process(inputs []interface{}) []interface{} {
+func (n *ConditionNode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("ConditionNode Process", inputs)
+
 	if len(inputs) == 0 {
-		return []interface{}{nil, nil}
+		return map[string]interface{}{
+			"true_value":  nil,
+			"false_value": nil,
+		}
 	}
 
 	conditionType := n.GetSetting("condition_type", "equals").(string)
 	expectedValue := n.GetSetting("expected_value", "")
 
-	input := inputs[0]
+	input := inputs["value"]
 	var result bool
 
 	switch conditionType {
@@ -55,10 +62,16 @@ func (n *ConditionNode) Process(inputs []interface{}) []interface{} {
 	}
 
 	if result {
-		return []interface{}{input, nil}
+		return map[string]interface{}{
+			"true_value":  input,
+			"false_value": nil,
+		}
 	}
 
-	return []interface{}{nil, input}
+	return map[string]interface{}{
+		"true_value":  nil,
+		"false_value": input,
+	}
 }
 
 func init() {

@@ -5,8 +5,8 @@ import (
 )
 
 type Edge struct {
-	TargetNode  *Node
-	OutputIndex int
+	TargetNode *Node
+	OutputKey  string
 }
 
 type Node struct {
@@ -14,8 +14,8 @@ type Node struct {
 	Name     string
 	Parents  []*Node
 	Children []Edge
-	Process  func(inputs []interface{}) []interface{}
-	Output   []interface{}
+	Process  func(inputs map[string]interface{}) map[string]interface{}
+	Output   map[string]interface{}
 	Mutex    sync.Mutex
 	Done     bool
 	Settings map[string]interface{}
@@ -32,7 +32,7 @@ func GetInstance() *NodeManager {
 	}
 }
 
-func (nm *NodeManager) CreateNode(id, name string, process func(inputs []interface{}) []interface{}, opts ...Option) *Node {
+func (nm *NodeManager) CreateNode(id, name string, process func(inputs map[string]interface{}) map[string]interface{}, opts ...Option) *Node {
 	nm.mutex.Lock()
 	defer nm.mutex.Unlock()
 
@@ -77,8 +77,8 @@ func (nm *NodeManager) AddEdge(parentID, childID string, outputIndex int) bool {
 	}
 
 	edge := Edge{
-		TargetNode:  childNode,
-		OutputIndex: outputIndex,
+		TargetNode: childNode,
+		OutputKey:  "",
 	}
 
 	parentNode.Children = append(parentNode.Children, edge)

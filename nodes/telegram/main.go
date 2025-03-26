@@ -1,6 +1,8 @@
 package nodesTelegram
 
 import (
+	"fmt"
+
 	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
@@ -16,12 +18,14 @@ func newTelegramNode() *TelegramNode {
 	}
 }
 
-func (n *TelegramNode) Process(inputs []interface{}) []interface{} {
-	message := inputs[0].(string)
+func (n *TelegramNode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("TelegramNode Process", inputs)
 
-	result := "Sent to Telegram: " + message
+	message := inputs["message"].(string)
 
-	return []interface{}{result}
+	return map[string]interface{}{
+		"message": message,
+	}
 }
 
 func init() {

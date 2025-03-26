@@ -2,6 +2,7 @@ package nodesDallE
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"github.com/enteresanlikk/go-dag/pkg/node"
 )
@@ -18,12 +19,16 @@ func newDallENode() *DallENode {
 	}
 }
 
-func (n *DallENode) Process(inputs []interface{}) []interface{} {
-	prompt := inputs[0].(string)
+func (n *DallENode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("DallENode Process", inputs)
+
+	prompt := inputs["prompt"].(string)
 
 	image := base64.StdEncoding.EncodeToString([]byte("Generated Image for: " + prompt))
 
-	return []interface{}{image}
+	return map[string]interface{}{
+		"image": image,
+	}
 }
 
 func init() {

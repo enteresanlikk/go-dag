@@ -3,7 +3,7 @@ package node
 type NodeProcessor interface {
 	ID() string
 	Name() string
-	Process(inputs []interface{}) []interface{}
+	Process(inputs map[string]interface{}) map[string]interface{}
 	GetSetting(key string, defaultValue interface{}) interface{}
 	SetSetting(key string, value interface{})
 }

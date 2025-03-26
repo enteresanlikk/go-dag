@@ -18,9 +18,11 @@ func newMergeNode() *MergeNode {
 	}
 }
 
-func (n *MergeNode) Process(inputs []interface{}) []interface{} {
-	for index, input := range inputs {
-		fmt.Println("MergeNode Process", index, input)
+func (n *MergeNode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("MergeNode Process", inputs)
+
+	for key, input := range inputs {
+		fmt.Println("MergeNode Process", key, input)
 	}
 
 	return inputs

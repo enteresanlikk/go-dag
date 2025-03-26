@@ -1,6 +1,8 @@
 package nodesOpenAI
 
 import (
+	"fmt"
+
 	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
@@ -16,12 +18,16 @@ func newOpenAINode() *OpenAINode {
 	}
 }
 
-func (n *OpenAINode) Process(inputs []interface{}) []interface{} {
-	prompt := inputs[0].(string)
+func (n *OpenAINode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("OpenAINode Process", inputs)
+
+	prompt := inputs["prompt"].(string)
 
 	response := "OpenAI Response for: " + prompt
 
-	return []interface{}{response}
+	return map[string]interface{}{
+		"response": response,
+	}
 }
 
 func init() {

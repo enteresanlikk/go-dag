@@ -1,6 +1,8 @@
 package nodesSlack
 
 import (
+	"fmt"
+
 	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
@@ -16,12 +18,14 @@ func newSlackNode() *SlackNode {
 	}
 }
 
-func (n *SlackNode) Process(inputs []interface{}) []interface{} {
-	image := inputs[0].(string)
+func (n *SlackNode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("SlackNode Process", inputs)
 
-	message := "New AI-generated image saved at: " + image
+	message := inputs["message"].(string)
 
-	return []interface{}{message}
+	return map[string]interface{}{
+		"message": message,
+	}
 }
 
 func init() {

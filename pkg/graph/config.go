@@ -8,11 +8,11 @@ type GraphConfig struct {
 type NodeConfig struct {
 	ID       string                 `json:"id"`
 	Settings map[string]interface{} `json:"settings"`
-	Inputs   []interface{}          `json:"inputs,omitempty"`
+	Inputs   map[string]interface{} `json:"inputs,omitempty"`
 }
 
 type EdgeConfig struct {
-	Source      string `json:"source"`
-	Target      string `json:"target"`
-	OutputIndex int    `json:"outputIndex"`
+	Source    string `json:"source"`
+	Target    string `json:"target"`
+	OutputKey int    `json:"outputKey"`
 }

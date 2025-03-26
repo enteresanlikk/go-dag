@@ -19,21 +19,27 @@ docker compose down
     "nodes": [
         {
             "id": "openai",
-            "inputs": [
-                "Create a futuristic city illustration"
-            ],
+            "inputs": {
+                "prompt": "Create a futuristic city illustration"
+            },
             "settings": {
                 "apiKey": "OPENAI_API_KEY"
             }
         },
         {
             "id": "dall-e",
+            "inputs": {
+                "prompt": "$id[openai].outputs[response]"
+            },
             "settings": {
                 "apiKey": "DALL_E_API_KEY"
             }
         },
         {
             "id": "google-drive",
+            "inputs": {
+                "file": "bu nasıl bir file $id[dall-e].outputs[image]"
+            },
             "settings": {
                 "folder": "GOOGLE_DRIVE_FOLDER",
                 "apiKey": "GOOGLE_DRIVE_API_KEY"
@@ -41,19 +47,22 @@ docker compose down
         },
         {
             "id": "slack",
+            "inputs": {
+                "message": "slack Image created: $id[google-drive].outputs[result]"
+            },
             "settings": {
                 "webhook": "SLACK_WEBHOOK"
             }
         },
         {
             "id": "telegram",
+            "inputs": {
+                "message": "telegram Image created: $id[google-drive].outputs[result]"
+            },
             "settings": {
                 "botToken": "TELEGRAM_BOT_TOKEN",
                 "chatId": "TELEGRAM_CHAT_ID"
             }
-        },
-        {
-            "id": "merge"
         }
     ],
     "edges": [
@@ -72,14 +81,6 @@ docker compose down
         {
             "source": "google-drive",
             "target": "telegram"
-        },
-        {
-            "source": "slack",
-            "target": "merge"
-        },
-        {
-            "source": "telegram",
-            "target": "merge"
         }
     ]
 }
@@ -90,7 +91,9 @@ docker compose down
     "nodes": [
         {
             "id": "condition",
-            "inputs": ["test-value"],
+            "inputs": {
+                "value": "test-value"
+            },
             "settings": {
                 "condition_type": "equals",
                 "expected_value": "test-value"
@@ -98,12 +101,18 @@ docker compose down
         },
         {
             "id": "slack",
+            "inputs": {
+                "message": "$id[condition].outputs[true_value]"
+            },
             "settings": {
                 "webhook": "SLACK_WEBHOOK"
             }
         },
         {
             "id": "telegram",
+            "inputs": {
+                "message": "$id[condition].outputs[false_value]"
+            },
             "settings": {
                 "botToken": "TELEGRAM_BOT_TOKEN",
                 "chatId": "TELEGRAM_CHAT_ID"
@@ -113,13 +122,11 @@ docker compose down
     "edges": [
         {
             "source": "condition",
-            "target": "slack",
-            "outputIndex": 0
+            "target": "slack"
         },
         {
             "source": "condition",
-            "target": "telegram",
-            "outputIndex": 1
+            "target": "telegram"
         }
     ]
 }
