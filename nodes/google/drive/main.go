@@ -1,8 +1,6 @@
 package nodesGoogleDrive
 
 import (
-	"time"
-
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 )
 
@@ -30,7 +28,7 @@ func NewGoogleDriveNode(settings map[string]interface{}) *GoogleDriveNode {
 // execute
 func (n *GoogleDriveNode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
 	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		time.Sleep(2 * time.Second)
+		// time.Sleep(2 * time.Second)
 
 		imageData := inputs[0].(string)
 		folder := n.Settings["folder"].(string)

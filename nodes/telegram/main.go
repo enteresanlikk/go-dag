@@ -1,8 +1,6 @@
 package nodesTelegram
 
 import (
-	"time"
-
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 )
 
@@ -30,7 +28,7 @@ func NewTelegramNode(settings map[string]interface{}) *TelegramNode {
 // execute
 func (n *TelegramNode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
 	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
 
 		image := inputs[0].(string)
 

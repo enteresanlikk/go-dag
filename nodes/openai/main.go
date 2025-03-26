@@ -1,8 +1,6 @@
 package nodesOpenAI
 
 import (
-	"time"
-
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 )
 
@@ -30,7 +28,7 @@ func NewOpenAINode(settings map[string]interface{}) *OpenAINode {
 // execute
 func (n *OpenAINode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
 	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 
 		prompt := inputs[0].(string)
 

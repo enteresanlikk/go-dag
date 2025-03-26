@@ -2,7 +2,6 @@ package nodesDallE
 
 import (
 	"encoding/base64"
-	"time"
 
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 )
@@ -31,7 +30,7 @@ func NewDallENode(settings map[string]interface{}) *DallENode {
 // execute
 func (n *DallENode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
 	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		time.Sleep(10 * time.Second)
+		// time.Sleep(10 * time.Second)
 
 		prompt := inputs[0].(string)
 

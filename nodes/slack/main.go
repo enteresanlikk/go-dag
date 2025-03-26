@@ -1,8 +1,6 @@
 package nodesSlack
 
 import (
-	"time"
-
 	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
 )
 
@@ -30,7 +28,7 @@ func NewSlackNode(settings map[string]interface{}) *SlackNode {
 // execute
 func (n *SlackNode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
 	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		time.Sleep(3 * time.Second)
+		// time.Sleep(3 * time.Second)
 
 		image := inputs[0].(string)
 
