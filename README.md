@@ -85,6 +85,46 @@ docker compose down
 }
 ```
 
+```json
+{
+    "nodes": [
+        {
+            "id": "condition",
+            "inputs": ["test-value"],
+            "settings": {
+                "condition_type": "equals",
+                "expected_value": "test-value"
+            }
+        },
+        {
+            "id": "slack",
+            "settings": {
+                "webhook": "SLACK_WEBHOOK"
+            }
+        },
+        {
+            "id": "telegram",
+            "settings": {
+                "botToken": "TELEGRAM_BOT_TOKEN",
+                "chatId": "TELEGRAM_CHAT_ID"
+            }
+        }
+    ],
+    "edges": [
+        {
+            "source": "condition",
+            "target": "slack",
+            "outputIndex": 0
+        },
+        {
+            "source": "condition",
+            "target": "telegram",
+            "outputIndex": 1
+        }
+    ]
+}
+```
+
 ## Run Workflow
 
 ```bash

@@ -12,6 +12,7 @@ type NodeConfig struct {
 }
 
 type EdgeConfig struct {
-	Source string `json:"source"`
-	Target string `json:"target"`
+	Source      string `json:"source"`
+	Target      string `json:"target"`
+	OutputIndex int    `json:"outputIndex"`
 }

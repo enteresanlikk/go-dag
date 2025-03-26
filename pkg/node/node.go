@@ -4,11 +4,16 @@ import (
 	"sync"
 )
 
+type Edge struct {
+	TargetNode  *Node
+	OutputIndex int
+}
+
 type Node struct {
 	ID       string
 	Name     string
 	Parents  []*Node
-	Children []*Node
+	Children []Edge
 	Process  func(inputs []interface{}) []interface{}
 	Output   []interface{}
 	Mutex    sync.Mutex
@@ -40,6 +45,7 @@ func (nm *NodeManager) CreateNode(id, name string, process func(inputs []interfa
 		Name:     name,
 		Process:  process,
 		Settings: make(map[string]interface{}),
+		Children: make([]Edge, 0),
 	}
 
 	baseNode := NewBaseNode(id, name, opts...)
@@ -59,7 +65,7 @@ func (nm *NodeManager) GetNode(id string) (*Node, bool) {
 	return node, exists
 }
 
-func (nm *NodeManager) AddEdge(parentID, childID string) bool {
+func (nm *NodeManager) AddEdge(parentID, childID string, outputIndex int) bool {
 	nm.mutex.Lock()
 	defer nm.mutex.Unlock()
 
@@ -70,7 +76,12 @@ func (nm *NodeManager) AddEdge(parentID, childID string) bool {
 		return false
 	}
 
-	parentNode.Children = append(parentNode.Children, childNode)
+	edge := Edge{
+		TargetNode:  childNode,
+		OutputIndex: outputIndex,
+	}
+
+	parentNode.Children = append(parentNode.Children, edge)
 	childNode.Parents = append(childNode.Parents, parentNode)
 	return true
 }

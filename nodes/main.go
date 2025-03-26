@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	_ "github.com/enteresanlikk/go-dag/nodes/condition"
 	_ "github.com/enteresanlikk/go-dag/nodes/dall-e"
 	_ "github.com/enteresanlikk/go-dag/nodes/google/drive"
 	_ "github.com/enteresanlikk/go-dag/nodes/merge"

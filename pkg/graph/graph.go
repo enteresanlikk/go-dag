@@ -24,8 +24,8 @@ func (g *Graph) AddNode(id, name string, process func(inputs []interface{}) []in
 	g.nodeManager.CreateNode(id, name, process)
 }
 
-func (g *Graph) AddEdge(parentID, childID string) {
-	g.nodeManager.AddEdge(parentID, childID)
+func (g *Graph) AddEdge(parentID, childID string, outputIndex int) {
+	g.nodeManager.AddEdge(parentID, childID, outputIndex)
 }
 
 func (g *Graph) Execute(startNodeID string, inputs []interface{}) {
@@ -47,11 +47,20 @@ func (g *Graph) executeNode(node *node.Node, inputs []interface{}) {
 		node.Output = node.Process(inputs)
 		node.Done = true
 	}
+	outputs := node.Output
 	node.Mutex.Unlock()
 
-	for _, child := range node.Children {
+	processedEdges := make(map[int]bool)
+
+	for _, edge := range node.Children {
+		if processedEdges[edge.OutputIndex] || edge.OutputIndex >= len(outputs) || outputs[edge.OutputIndex] == nil {
+			continue
+		}
+
+		processedEdges[edge.OutputIndex] = true
+
 		allParentsReady := true
-		for _, parent := range child.Parents {
+		for _, parent := range edge.TargetNode.Parents {
 			parent.Mutex.Lock()
 			if !parent.Done {
 				allParentsReady = false
@@ -65,17 +74,9 @@ func (g *Graph) executeNode(node *node.Node, inputs []interface{}) {
 
 		if allParentsReady {
 			g.wg.Add(1)
-			go g.executeNode(child, g.collectInputs(child))
+			go g.executeNode(edge.TargetNode, []interface{}{outputs[edge.OutputIndex]})
 		}
 	}
-}
-
-func (g *Graph) collectInputs(node *node.Node) []interface{} {
-	inputs := []interface{}{}
-	for _, parent := range node.Parents {
-		inputs = append(inputs, parent.Output...)
-	}
-	return inputs
 }
 
 func (g *Graph) GetNodeManager() *node.NodeManager {
@@ -104,6 +105,7 @@ func (g *Graph) LoadFromJSON(jsonData *GraphConfig) error {
 			Name:     processor.Name(),
 			Process:  processor.Process,
 			Settings: make(map[string]interface{}),
+			Children: make([]node.Edge, 0),
 		}
 
 		for key, value := range nodeConfig.Settings {
@@ -129,7 +131,7 @@ func (g *Graph) LoadFromJSON(jsonData *GraphConfig) error {
 	}
 
 	for _, edge := range jsonData.Edges {
-		g.AddEdge(edge.Source, edge.Target)
+		g.AddEdge(edge.Source, edge.Target, edge.OutputIndex)
 	}
 
 	g.wg.Wait()
