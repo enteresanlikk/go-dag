@@ -29,7 +29,7 @@ docker compose down
         {
             "id": "dall-e",
             "inputs": {
-                "prompt": "$id[openai].outputs[response]"
+                "prompt": "$openai.response"
             },
             "settings": {
                 "apiKey": "DALL_E_API_KEY"
@@ -38,7 +38,7 @@ docker compose down
         {
             "id": "google-drive",
             "inputs": {
-                "file": "bu nasıl bir file $id[dall-e].outputs[image]"
+                "file": "bu nasıl bir file $dall-e.image"
             },
             "settings": {
                 "folder": "GOOGLE_DRIVE_FOLDER",
@@ -48,7 +48,7 @@ docker compose down
         {
             "id": "slack",
             "inputs": {
-                "message": "slack Image created: $id[google-drive].outputs[result]"
+                "message": "slack Image created: $google-drive.result"
             },
             "settings": {
                 "webhook": "SLACK_WEBHOOK"
@@ -57,7 +57,7 @@ docker compose down
         {
             "id": "telegram",
             "inputs": {
-                "message": "telegram Image created: $id[google-drive].outputs[result]"
+                "message": "telegram Image created: $google-drive.result"
             },
             "settings": {
                 "botToken": "TELEGRAM_BOT_TOKEN",
@@ -102,7 +102,7 @@ docker compose down
         {
             "id": "slack",
             "inputs": {
-                "message": "$id[condition].outputs[true_value]"
+                "message": "$condition.true_value"
             },
             "settings": {
                 "webhook": "SLACK_WEBHOOK"
@@ -111,7 +111,7 @@ docker compose down
         {
             "id": "telegram",
             "inputs": {
-                "message": "$id[condition].outputs[false_value]"
+                "message": "$condition.false_value"
             },
             "settings": {
                 "botToken": "TELEGRAM_BOT_TOKEN",
@@ -147,7 +147,7 @@ docker compose down
         {
             "id": "dall-e",
             "inputs": {
-                "prompt": "$id[openai].outputs[response]"
+                "prompt": "$openai.response"
             },
             "settings": {
                 "apiKey": "DALL_E_API_KEY"
@@ -156,7 +156,7 @@ docker compose down
         {
             "id": "google-drive",
             "inputs": {
-                "file": "bu nasıl bir file $id[dall-e].outputs[image]"
+                "file": "bu nasıl bir file $dall-e.image"
             },
             "settings": {
                 "folder": "GOOGLE_DRIVE_FOLDER",
@@ -166,7 +166,7 @@ docker compose down
         {
             "id": "slack",
             "inputs": {
-                "message": "slack Image created: $id[google-drive].outputs[result]"
+                "message": "slack Image created: $google-drive.result"
             },
             "settings": {
                 "webhook": "SLACK_WEBHOOK"
@@ -175,7 +175,7 @@ docker compose down
         {
             "id": "telegram",
             "inputs": {
-                "message": "telegram Image created: $id[google-drive].outputs[result]"
+                "message": "telegram Image created: $google-drive.result"
             },
             "settings": {
                 "botToken": "TELEGRAM_BOT_TOKEN",
@@ -185,9 +185,9 @@ docker compose down
         {
             "id": "merge",
             "inputs": {
-                "telegram": "$id[telegram].outputs[message]",
-                "slack": "$id[slack].outputs[message]",
-                "dall-e": "$id[dall-e].outputs[image]",
+                "telegram": "$telegram.message",
+                "slack": "$slack.message",
+                "dall-e": "$dall-e.image",
                 "otherInput": "other input value"
             }
         }

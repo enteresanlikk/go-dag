@@ -91,7 +91,7 @@ func (g *Graph) GetNodeManager() *node.NodeManager {
 func (g *Graph) processInputValue(value interface{}, nodeID string) (interface{}, error) {
 	if strValue, ok := value.(string); ok {
 		// Check if the value contains a dynamic reference
-		re := regexp.MustCompile(`\$id\[([^\]]+)\]\.outputs\[([^\]]+)\]`)
+		re := regexp.MustCompile(`\$([^.]+)\.([^.]+)`)
 		matches := re.FindStringSubmatch(strValue)
 
 		if len(matches) == 3 {
