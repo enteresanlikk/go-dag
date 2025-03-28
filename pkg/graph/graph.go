@@ -12,13 +12,14 @@ import (
 type Graph struct {
 	nodeManager *node.NodeManager
 	wg          sync.WaitGroup
-	nodeOutputs map[string]map[string]interface{}
+	nodeOutputs sync.Map
 }
 
 func NewGraph() *Graph {
 	return &Graph{
 		nodeManager: node.GetInstance(),
-		nodeOutputs: make(map[string]map[string]interface{}),
+		wg:          sync.WaitGroup{},
+		nodeOutputs: sync.Map{},
 	}
 }
 
@@ -26,7 +27,7 @@ func (g *Graph) AddNode(id, name string, process func(map[string]interface{}) ma
 	g.nodeManager.CreateNode(id, name, process)
 }
 
-func (g *Graph) AddEdge(parentID, childID string, outputKey int) {
+func (g *Graph) AddEdge(parentID, childID, outputKey string) {
 	g.nodeManager.AddEdge(parentID, childID, outputKey)
 }
 
@@ -37,18 +38,19 @@ func (g *Graph) Execute(startNodeID string, inputs map[string]interface{}) {
 	}
 
 	g.wg.Add(1)
-	go g.executeNode(startNode, inputs)
+	g.ExecuteNode(startNode, inputs)
 	g.wg.Wait()
 }
 
-func (g *Graph) executeNode(node *node.Node, inputs map[string]interface{}) {
+func (g *Graph) ExecuteNode(node *node.Node, inputs map[string]interface{}) {
 	defer g.wg.Done()
 
 	node.Mutex.Lock()
 	if !node.Done {
-		node.Output = node.Process(inputs)
+		output := node.Process(inputs)
+		node.Output = output
 		node.Done = true
-		g.nodeOutputs[node.ID] = node.Output
+		g.nodeOutputs.Store(node.ID, output)
 	}
 	outputs := node.Output
 	node.Mutex.Unlock()
@@ -65,12 +67,11 @@ func (g *Graph) executeNode(node *node.Node, inputs map[string]interface{}) {
 		allParentsReady := true
 		for _, parent := range edge.TargetNode.Parents {
 			parent.Mutex.Lock()
-			if !parent.Done {
-				allParentsReady = false
-			}
+			isDone := parent.Done
 			parent.Mutex.Unlock()
 
-			if !allParentsReady {
+			if !isDone {
+				allParentsReady = false
 				break
 			}
 		}
@@ -79,7 +80,7 @@ func (g *Graph) executeNode(node *node.Node, inputs map[string]interface{}) {
 			g.wg.Add(1)
 			targetInputs := make(map[string]interface{})
 			targetInputs[edge.OutputKey] = outputs[edge.OutputKey]
-			go g.executeNode(edge.TargetNode, targetInputs)
+			g.ExecuteNode(edge.TargetNode, targetInputs)
 		}
 	}
 }
@@ -88,25 +89,21 @@ func (g *Graph) GetNodeManager() *node.NodeManager {
 	return g.nodeManager
 }
 
-func (g *Graph) processInputValue(value interface{}, nodeID string) (interface{}, error) {
-	if strValue, ok := value.(string); ok {
-		// Check if the value contains a dynamic reference
-		re := regexp.MustCompile(`\$([^.]+)\.([^.]+)`)
-		matches := re.FindStringSubmatch(strValue)
+var reCache = regexp.MustCompile(`\$([^.]+)\.([^.]+)`)
 
+func (g *Graph) ProcessInputValue(value interface{}) (interface{}, error) {
+	if strValue, ok := value.(string); ok {
+		matches := reCache.FindStringSubmatch(strValue)
 		if len(matches) == 3 {
-			// Extract referenced node ID and output key
 			referencedNodeID := matches[1]
 			outputKey := matches[2]
 
-			// Get the referenced node's outputs
-			if outputs, exists := g.nodeOutputs[referencedNodeID]; exists {
+			if outputsRaw, exists := g.nodeOutputs.Load(referencedNodeID); exists {
+				outputs := outputsRaw.(map[string]interface{})
 				if output, exists := outputs[outputKey]; exists {
-					// If the entire string is just the reference, return the output value directly
 					if matches[0] == strValue {
 						return output, nil
 					}
-					// Otherwise, replace the reference in the string with the output value
 					return strings.Replace(strValue, matches[0], fmt.Sprintf("%v", output), -1), nil
 				}
 			}
@@ -116,24 +113,22 @@ func (g *Graph) processInputValue(value interface{}, nodeID string) (interface{}
 	return value, nil
 }
 
-type dependencyGraph struct {
+type DependencyGraph struct {
 	nodes map[string]NodeConfig
-	edges map[string][]string // node -> dependencies
+	edges map[string][]string
 }
 
-func (g *Graph) buildDependencyGraph(jsonData *GraphConfig) *dependencyGraph {
-	graph := &dependencyGraph{
+func (g *Graph) BuildDependencyGraph(jsonData *GraphConfig) *DependencyGraph {
+	graph := &DependencyGraph{
 		nodes: make(map[string]NodeConfig),
 		edges: make(map[string][]string),
 	}
 
-	// Add all nodes to the graph
 	for _, node := range jsonData.Nodes {
 		graph.nodes[node.ID] = node
 		graph.edges[node.ID] = make([]string, 0)
 	}
 
-	// Add edges from the edges configuration
 	for _, edge := range jsonData.Edges {
 		graph.edges[edge.Source] = append(graph.edges[edge.Source], edge.Target)
 	}
@@ -141,8 +136,8 @@ func (g *Graph) buildDependencyGraph(jsonData *GraphConfig) *dependencyGraph {
 	return graph
 }
 
-func (g *Graph) topologicalSort(jsonData *GraphConfig) ([]NodeConfig, error) {
-	graph := g.buildDependencyGraph(jsonData)
+func (g *Graph) TopologicalSort(jsonData *GraphConfig) ([]NodeConfig, error) {
+	graph := g.BuildDependencyGraph(jsonData)
 	visited := make(map[string]bool)
 	temp := make(map[string]bool)
 	order := make([]NodeConfig, 0)
@@ -157,7 +152,6 @@ func (g *Graph) topologicalSort(jsonData *GraphConfig) ([]NodeConfig, error) {
 		}
 		temp[nodeID] = true
 
-		// Visit all dependencies
 		for _, dep := range graph.edges[nodeID] {
 			if err := visit(dep); err != nil {
 				return err
@@ -170,7 +164,6 @@ func (g *Graph) topologicalSort(jsonData *GraphConfig) ([]NodeConfig, error) {
 		return nil
 	}
 
-	// Visit all nodes
 	for nodeID := range graph.nodes {
 		if !visited[nodeID] {
 			if err := visit(nodeID); err != nil {
@@ -183,50 +176,39 @@ func (g *Graph) topologicalSort(jsonData *GraphConfig) ([]NodeConfig, error) {
 }
 
 func (g *Graph) LoadFromJSON(jsonData *GraphConfig) error {
-	// First pass: Create all nodes
 	for _, nodeConfig := range jsonData.Nodes {
 		processor, exists := node.GetProcessor(nodeConfig.ID)
 		if !exists {
 			return fmt.Errorf("node processor not found for ID: %s", nodeConfig.ID)
 		}
 
-		processor.SetSettings(nodeConfig.Settings)
-
 		node := &node.Node{
 			ID:       processor.GetID(),
 			Name:     processor.GetName(),
 			Process:  processor.Process,
-			Settings: make(map[string]interface{}),
-			Children: make([]node.Edge, 0),
-		}
-
-		for key, value := range nodeConfig.Settings {
-			node.Settings[key] = value
+			Settings: nodeConfig.Settings,
+			Children: make([]node.Edge, 0, 4),
 		}
 
 		g.nodeManager.AddNode(node)
 	}
 
-	// Second pass: Create edges
 	for _, edge := range jsonData.Edges {
 		g.AddEdge(edge.Source, edge.Target, edge.OutputKey)
 	}
 
-	// Third pass: Sort nodes topologically and execute them in order
-	sortedNodes, err := g.topologicalSort(jsonData)
+	sortedNodes, err := g.TopologicalSort(jsonData)
 	if err != nil {
 		return err
 	}
 
-	// Execute nodes in topological order
 	for _, nodeConfig := range sortedNodes {
 		node, _ := g.nodeManager.GetNode(nodeConfig.ID)
 		inputs := make(map[string]interface{})
 
 		if len(nodeConfig.Inputs) > 0 {
-			// Process each input
 			for key, value := range nodeConfig.Inputs {
-				processedValue, err := g.processInputValue(value, nodeConfig.ID)
+				processedValue, err := g.ProcessInputValue(value)
 				if err != nil {
 					return err
 				}
@@ -234,10 +216,9 @@ func (g *Graph) LoadFromJSON(jsonData *GraphConfig) error {
 			}
 		}
 
-		// Execute node even if it has no inputs
 		g.wg.Add(1)
-		go g.executeNode(node, inputs)
-		g.wg.Wait() // Wait for this node to complete before processing next node
+		g.ExecuteNode(node, inputs)
+		g.wg.Wait()
 	}
 
 	return nil

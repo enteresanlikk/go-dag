@@ -42,11 +42,3 @@ func (n *BaseNode) GetSetting(key string, defaultValue interface{}) interface{} 
 	}
 	return defaultValue
 }
-
-type Option func(node *BaseNode)
-
-func WithSetting(key string, value interface{}) Option {
-	return func(node *BaseNode) {
-		node.SetSetting(key, value)
-	}
-}

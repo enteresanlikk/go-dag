@@ -32,7 +32,7 @@ func GetInstance() *NodeManager {
 	}
 }
 
-func (nm *NodeManager) CreateNode(id, name string, process func(inputs map[string]interface{}) map[string]interface{}, opts ...Option) *Node {
+func (nm *NodeManager) CreateNode(id, name string, process func(inputs map[string]interface{}) map[string]interface{}) *Node {
 	nm.mutex.Lock()
 	defer nm.mutex.Unlock()
 
@@ -65,7 +65,7 @@ func (nm *NodeManager) GetNode(id string) (*Node, bool) {
 	return node, exists
 }
 
-func (nm *NodeManager) AddEdge(parentID, childID string, outputIndex int) bool {
+func (nm *NodeManager) AddEdge(parentID, childID, outputKey string) bool {
 	nm.mutex.Lock()
 	defer nm.mutex.Unlock()
 

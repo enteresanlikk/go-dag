@@ -14,5 +14,5 @@ type NodeConfig struct {
 type EdgeConfig struct {
 	Source    string `json:"source"`
 	Target    string `json:"target"`
-	OutputKey int    `json:"outputKey"`
+	OutputKey string `json:"outputKey"`
 }

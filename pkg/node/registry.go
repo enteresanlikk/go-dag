@@ -1,5 +1,9 @@
 package node
 
+import (
+	"sync"
+)
+
 type NodeProcessor interface {
 	GetID() string
 	GetName() string
@@ -10,21 +14,44 @@ type NodeProcessor interface {
 	SetSettings(settings map[string]interface{})
 }
 
+type NodeRegistry struct {
+	processors sync.Map
+	cache      sync.Map
+}
+
 var (
-	nodeRegistry = make(map[string]NodeProcessor)
+	instance *NodeRegistry
+	once     sync.Once
 )
 
+func GetRegistry() *NodeRegistry {
+	once.Do(func() {
+		instance = &NodeRegistry{}
+	})
+	return instance
+}
+
+func (r *NodeRegistry) RegisterProcessor(processor NodeProcessor) {
+	r.processors.Store(processor.GetID(), processor)
+}
+
+func (r *NodeRegistry) GetProcessor(id string) (NodeProcessor, bool) {
+	if cached, ok := r.cache.Load(id); ok {
+		return cached.(NodeProcessor), true
+	}
+
+	if value, exists := r.processors.Load(id); exists {
+		processor := value.(NodeProcessor)
+		r.cache.Store(id, processor)
+		return processor, true
+	}
+	return nil, false
+}
+
 func RegisterProcessor(processor NodeProcessor) {
-	nodeRegistry[processor.GetID()] = processor
+	GetRegistry().RegisterProcessor(processor)
 }
 
 func GetProcessor(id string) (NodeProcessor, bool) {
-	processor, exists := nodeRegistry[id]
-	return processor, exists
-}
-
-func InitializeNodes(manager *NodeManager) {
-	for _, processor := range nodeRegistry {
-		manager.CreateNode(processor.GetID(), processor.GetName(), processor.Process)
-	}
+	return GetRegistry().GetProcessor(id)
 }
