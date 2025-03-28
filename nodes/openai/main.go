@@ -1,51 +1,33 @@
 package nodesOpenAI
 
 import (
-	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
+	"fmt"
+
+	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
-// type
 type OpenAINode struct {
-	nodesCommon.BaseNode
-
-	Settings map[string]interface{}
+	node.BaseNode
 }
 
-// base node settings
-var baseNode = nodesCommon.BaseNode{
-	ID:   "openai",
-	Name: "OpenAI",
-}
-
-// create
-func NewOpenAINode(settings map[string]interface{}) *OpenAINode {
+func NewOpenAINode() *OpenAINode {
 	return &OpenAINode{
-		BaseNode: baseNode,
-		Settings: settings,
+		BaseNode: node.NewBaseNode("openai", "OpenAI"),
 	}
 }
 
-// execute
-func (n *OpenAINode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
-	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		// time.Sleep(5 * time.Second)
+func (n *OpenAINode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("OpenAINode Process", inputs)
 
-		prompt := inputs[0].(string)
+	prompt := inputs["prompt"].(string)
 
-		//business logic
-		response := "OpenAI Response for: " + prompt
+	response := "OpenAI Response for: " + prompt
 
-		return []interface{}{response}
-	})
+	return map[string]interface{}{
+		"response": response,
+	}
 }
 
-// factory
-func CreateOpenAINode(settings map[string]interface{}) (nodesCommon.Node, error) {
-	return NewOpenAINode(settings), nil
-}
-
-// init
 func init() {
-	factory := nodesCommon.GetFactory()
-	factory.Register(baseNode.ID, CreateOpenAINode)
+	node.RegisterProcessor(NewOpenAINode())
 }

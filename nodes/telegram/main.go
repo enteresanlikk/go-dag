@@ -1,51 +1,31 @@
 package nodesTelegram
 
 import (
-	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
+	"fmt"
+
+	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
-// type
 type TelegramNode struct {
-	nodesCommon.BaseNode
-
-	Settings map[string]interface{}
+	node.BaseNode
 }
 
-// base node settings
-var baseNode = nodesCommon.BaseNode{
-	ID:   "telegram",
-	Name: "Telegram",
-}
-
-// create
-func NewTelegramNode(settings map[string]interface{}) *TelegramNode {
+func NewTelegramNode() *TelegramNode {
 	return &TelegramNode{
-		BaseNode: baseNode,
-		Settings: settings,
+		BaseNode: node.NewBaseNode("telegram", "Telegram"),
 	}
 }
 
-// execute
-func (n *TelegramNode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
-	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		// time.Sleep(1 * time.Second)
+func (n *TelegramNode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("TelegramNode Process", inputs)
 
-		image := inputs[0].(string)
+	message := inputs["message"].(string)
 
-		//business logic
-		message := "New AI-generated image saved at: " + image
-
-		return []interface{}{message}
-	})
+	return map[string]interface{}{
+		"message": message,
+	}
 }
 
-// factory
-func CreateTelegramNode(settings map[string]interface{}) (nodesCommon.Node, error) {
-	return NewTelegramNode(settings), nil
-}
-
-// init
 func init() {
-	factory := nodesCommon.GetFactory()
-	factory.Register(baseNode.ID, CreateTelegramNode)
+	node.RegisterProcessor(NewTelegramNode())
 }

@@ -2,52 +2,33 @@ package nodesDallE
 
 import (
 	"encoding/base64"
+	"fmt"
 
-	nodesCommon "github.com/enteresanlikk/go-dag/nodes/common"
+	"github.com/enteresanlikk/go-dag/pkg/node"
 )
 
-// type
 type DallENode struct {
-	nodesCommon.BaseNode
-
-	Settings interface{}
+	node.BaseNode
 }
 
-// base node settings
-var baseNode = nodesCommon.BaseNode{
-	ID:   "dall-e",
-	Name: "DALL·E",
-}
-
-// create
-func NewDallENode(settings map[string]interface{}) *DallENode {
+func NewDallENode() *DallENode {
 	return &DallENode{
-		BaseNode: baseNode,
-		Settings: settings,
+		BaseNode: node.NewBaseNode("dall-e", "DALL·E"),
 	}
 }
 
-// execute
-func (n *DallENode) Execute(inputs []interface{}) []nodesCommon.NodeOutput {
-	return n.ExecuteWithCheck(inputs, func(inputs []interface{}) []interface{} {
-		// time.Sleep(10 * time.Second)
+func (n *DallENode) Process(inputs map[string]interface{}) map[string]interface{} {
+	fmt.Println("DallENode Process", inputs)
 
-		prompt := inputs[0].(string)
+	prompt := inputs["prompt"].(string)
 
-		//business logic
-		image := base64.StdEncoding.EncodeToString([]byte("Generated Image for: " + prompt))
+	image := base64.StdEncoding.EncodeToString([]byte("Generated Image for: " + prompt))
 
-		return []interface{}{image}
-	})
+	return map[string]interface{}{
+		"image": image,
+	}
 }
 
-// factory
-func CreateDallENode(settings map[string]interface{}) (nodesCommon.Node, error) {
-	return NewDallENode(settings), nil
-}
-
-// init
 func init() {
-	factory := nodesCommon.GetFactory()
-	factory.Register(baseNode.ID, CreateDallENode)
+	node.RegisterProcessor(NewDallENode())
 }
